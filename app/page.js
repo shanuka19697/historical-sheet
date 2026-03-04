@@ -1,65 +1,150 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
 
 export default function Home() {
+  const [formData, setFormData] = useState({
+    title: "",
+    members: Array.from({ length: 4 }, () => ({
+      name: "",
+      indexNumber: "",
+      department: "ICT",
+    })),
+  });
+
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const departments = ["ICT", "IAT", "ET", "AT"];
+
+  const handleMemberChange = (index, field, value) => {
+    const updatedMembers = [...formData.members];
+    updatedMembers[index][field] = value;
+    setFormData({ ...formData, members: updatedMembers });
+  };
+
+  const handleReset = () => {
+    setFormData({
+      title: "",
+      members: Array.from({ length: 4 }, () => ({
+        name: "",
+        indexNumber: "",
+        department: "ICT",
+      })),
+    });
+    setStatus({ type: "", message: "" });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setStatus({ type: "", message: "" });
+
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setStatus({ type: "success", message: "Form submitted successfully!" });
+        handleReset();
+      } else {
+        const data = await response.json();
+        setStatus({ type: "error", message: data.error || "Failed to submit form." });
+      }
+    } catch (error) {
+      setStatus({ type: "error", message: "An unexpected error occurred." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="form-container">
+      <h1 className="form-title">Group Registration</h1>
+      <p className="form-subtitle">Please enter your group details below.</p>
+
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="title">Project Title</label>
+          <input
+            type="text"
+            id="title"
+            className="form-input"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Enter the title of your project"
+            required
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="members-grid">
+          {formData.members.map((member, index) => (
+            <div key={index} className="member-card">
+              <h3>Member {index + 1}</h3>
+              
+              <div className="form-group">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={member.name}
+                  onChange={(e) => handleMemberChange(index, "name", e.target.value)}
+                  placeholder="Full Name"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Index Number</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={member.indexNumber}
+                  onChange={(e) => handleMemberChange(index, "indexNumber", e.target.value)}
+                  placeholder="e.g., IX001"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Department</label>
+                <select
+                  className="form-input"
+                  value={member.department}
+                  onChange={(e) => handleMemberChange(index, "department", e.target.value)}
+                  required
+                >
+                  {departments.map((dep) => (
+                    <option key={dep} value={dep} style={{color: "black"}}>
+                      {dep}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
+
+        {status.message && (
+          <div className={`message ${status.type}`}>
+            {status.message}
+          </div>
+        )}
+
+        <div className="button-group">
+          <button type="button" className="btn btn-secondary" onClick={handleReset} disabled={isSubmitting}>
+            Reset Form
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit Registration"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
