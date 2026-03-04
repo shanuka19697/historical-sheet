@@ -106,7 +106,7 @@ export default function Home() {
                   className="form-input"
                   value={member.indexNumber}
                   onChange={(e) => handleMemberChange(index, "indexNumber", e.target.value)}
-                  placeholder="e.g., IX001"
+                  placeholder="e.g., 2024txxxxx"
                   required
                 />
               </div>
