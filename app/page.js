@@ -120,7 +120,7 @@ export default function Home() {
                   required
                 >
                   {departments.map((dep) => (
-                    <option key={dep} value={dep} style={{color: "black"}}>
+                    <option key={dep} value={dep}>
                       {dep}
                     </option>
                   ))}
